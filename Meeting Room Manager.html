@@ -247,7 +247,7 @@
         for (const room of rooms) {
           const option = document.createElement('option');
           option.value = room.id;
-          option.textContent = `${room.name} (${room.capacity})`;
+          option.textContent = `${room.name} (${room.capacity} seats)`;
           roomSelect.append(option);
         }
 
@@ -295,13 +295,22 @@
         for (const entry of visible) {
           const room = rooms.find((r) => r.id === entry.roomId);
           const item = document.createElement('li');
+          const title = document.createElement('strong');
+          const schedule = document.createElement('span');
+          const organizer = document.createElement('span');
+          const capacity = document.createElement('span');
+
           item.className = 'booking';
-          item.innerHTML = `
-            <strong>${room.name}</strong>
-            <span class="meta">${entry.date} · ${entry.start} - ${entry.end}</span>
-            <span class="meta">Organizer: ${entry.organizer}</span>
-            <span class="pill">Capacity ${room.capacity}</span>
-          `;
+          schedule.className = 'meta';
+          organizer.className = 'meta';
+          capacity.className = 'pill';
+
+          title.textContent = room.name;
+          schedule.textContent = `${entry.date} · ${entry.start} - ${entry.end}`;
+          organizer.textContent = `Organizer: ${entry.organizer}`;
+          capacity.textContent = `Capacity ${room.capacity}`;
+
+          item.append(title, schedule, organizer, capacity);
           bookingList.append(item);
         }
       }
