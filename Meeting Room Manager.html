@@ -292,7 +292,10 @@
         bookingList.innerHTML = '';
 
         if (!visible.length) {
-          bookingList.innerHTML = '<li class="empty">No bookings found.</li>';
+          const emptyItem = document.createElement('li');
+          emptyItem.className = 'empty';
+          emptyItem.textContent = 'No bookings found.';
+          bookingList.append(emptyItem);
           return;
         }
 
