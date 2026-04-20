@@ -308,7 +308,7 @@
           title.textContent = room.name;
           schedule.textContent = `${entry.date} · ${entry.start} - ${entry.end}`;
           organizer.textContent = `Organizer: ${entry.organizer}`;
-          capacity.textContent = `Capacity ${room.capacity}`;
+          capacity.textContent = `Capacity ${room.capacity} seats`;
 
           item.append(title, schedule, organizer, capacity);
           bookingList.append(item);
