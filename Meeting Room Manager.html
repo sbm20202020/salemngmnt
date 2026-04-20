@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meeting Room Manager</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f3f4f8;
+        --surface: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --accent: #2563eb;
+        --accent-soft: #dbeafe;
+        --danger: #b91c1c;
+        --success: #166534;
+        --border: #e5e7eb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .page {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 32px 16px 48px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.9rem;
+      }
+
+      .subtitle {
+        margin: 0 0 24px;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 1.1rem;
+      }
+
+      form {
+        display: grid;
+        gap: 10px;
+      }
+
+      label {
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+
+      input,
+      select,
+      button {
+        width: 100%;
+        font: inherit;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      input:focus,
+      select:focus {
+        outline: 2px solid var(--accent-soft);
+        border-color: var(--accent);
+      }
+
+      button {
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button:hover {
+        filter: brightness(0.96);
+      }
+
+      .flash {
+        margin-top: 8px;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+      }
+
+      .flash.success {
+        background: #dcfce7;
+        color: var(--success);
+      }
+
+      .flash.error {
+        background: #fee2e2;
+        color: var(--danger);
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .toolbar select {
+        max-width: 220px;
+      }
+
+      .bookings {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .booking {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px;
+        background: #fff;
+      }
+
+      .booking strong {
+        display: block;
+      }
+
+      .booking .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .empty {
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 6px;
+        font-size: 0.78rem;
+        background: var(--accent-soft);
+        color: #1e40af;
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <h1>Meeting Room Manager</h1>
+      <p class="subtitle">Schedule, track, and filter room bookings.</p>
+
+      <div class="grid">
+        <section class="card">
+          <h2>Create Booking</h2>
+          <form id="booking-form">
+            <label>
+              Room
+              <select id="room" required>
+                <option value="">Select a room</option>
+              </select>
+            </label>
+            <label>
+              Organizer
+              <input id="organizer" type="text" maxlength="80" required />
+            </label>
+            <label>
+              Date
+              <input id="date" type="date" required />
+            </label>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px">
+              <label>
+                Start
+                <input id="start" type="time" required />
+              </label>
+              <label>
+                End
+                <input id="end" type="time" required />
+              </label>
+            </div>
+            <button type="submit">Book room</button>
+          </form>
+          <div id="message" aria-live="polite"></div>
+        </section>
+
+        <section class="card">
+          <div class="toolbar">
+            <h2 style="margin: 0">Bookings</h2>
+            <select id="filter-room" aria-label="Filter room"></select>
+          </div>
+          <ul class="bookings" id="booking-list"></ul>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const rooms = [
+        { id: 'atlas', name: 'Atlas', capacity: 6 },
+        { id: 'orion', name: 'Orion', capacity: 10 },
+        { id: 'zenith', name: 'Zenith', capacity: 14 }
+      ];
+
+      const bookings = [
+        {
+          roomId: 'atlas',
+          organizer: 'Alex Kim',
+          date: '2026-04-22',
+          start: '09:30',
+          end: '10:30'
+        }
+      ];
+
+      const roomSelect = document.getElementById('room');
+      const filterSelect = document.getElementById('filter-room');
+      const bookingList = document.getElementById('booking-list');
+      const form = document.getElementById('booking-form');
+      const message = document.getElementById('message');
+
+      function renderRoomOptions() {
+        for (const room of rooms) {
+          const option = document.createElement('option');
+          option.value = room.id;
+          option.textContent = `${room.name} (${room.capacity})`;
+          roomSelect.append(option);
+        }
+
+        filterSelect.innerHTML = '<option value="all">All rooms</option>';
+        for (const room of rooms) {
+          const option = document.createElement('option');
+          option.value = room.id;
+          option.textContent = room.name;
+          filterSelect.append(option);
+        }
+      }
+
+      function compareBookings(a, b) {
+        return `${a.date} ${a.start}`.localeCompare(`${b.date} ${b.start}`);
+      }
+
+      function overlaps(a, b) {
+        if (a.roomId !== b.roomId || a.date !== b.date) return false;
+        return a.start < b.end && b.start < a.end;
+      }
+
+      function setMessage(text, kind) {
+        message.className = `flash ${kind}`;
+        message.textContent = text;
+      }
+
+      function clearMessage() {
+        message.className = '';
+        message.textContent = '';
+      }
+
+      function renderBookings() {
+        const roomFilter = filterSelect.value || 'all';
+        const visible = bookings
+          .filter((entry) => roomFilter === 'all' || entry.roomId === roomFilter)
+          .sort(compareBookings);
+
+        bookingList.innerHTML = '';
+
+        if (!visible.length) {
+          bookingList.innerHTML = '<li class="empty">No bookings found.</li>';
+          return;
+        }
+
+        for (const entry of visible) {
+          const room = rooms.find((r) => r.id === entry.roomId);
+          const item = document.createElement('li');
+          item.className = 'booking';
+          item.innerHTML = `
+            <strong>${room.name}</strong>
+            <span class="meta">${entry.date} · ${entry.start} - ${entry.end}</span>
+            <span class="meta">Organizer: ${entry.organizer}</span>
+            <span class="pill">Capacity ${room.capacity}</span>
+          `;
+          bookingList.append(item);
+        }
+      }
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        clearMessage();
+
+        const next = {
+          roomId: roomSelect.value,
+          organizer: document.getElementById('organizer').value.trim(),
+          date: document.getElementById('date').value,
+          start: document.getElementById('start').value,
+          end: document.getElementById('end').value
+        };
+
+        if (!next.roomId || !next.organizer || !next.date || !next.start || !next.end) {
+          setMessage('Please complete all fields before booking.', 'error');
+          return;
+        }
+
+        if (next.start >= next.end) {
+          setMessage('End time must be later than start time.', 'error');
+          return;
+        }
+
+        const conflicting = bookings.find((entry) => overlaps(entry, next));
+        if (conflicting) {
+          setMessage('This room is already booked for the selected time.', 'error');
+          return;
+        }
+
+        bookings.push(next);
+        form.reset();
+        setMessage('Booking created successfully.', 'success');
+        renderBookings();
+      });
+
+      filterSelect.addEventListener('change', renderBookings);
+
+      renderRoomOptions();
+      renderBookings();
+    </script>
+  </body>
+</html>
