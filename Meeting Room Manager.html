@@ -251,7 +251,11 @@
           roomSelect.append(option);
         }
 
-        filterSelect.innerHTML = '<option value="all">All rooms</option>';
+        filterSelect.innerHTML = '';
+        const allRoomsOption = document.createElement('option');
+        allRoomsOption.value = 'all';
+        allRoomsOption.textContent = 'All rooms';
+        filterSelect.append(allRoomsOption);
         for (const room of rooms) {
           const option = document.createElement('option');
           option.value = room.id;
